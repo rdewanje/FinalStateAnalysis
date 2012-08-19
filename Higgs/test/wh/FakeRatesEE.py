@@ -73,14 +73,23 @@ class FakeRatesEE(MegaBase):
                     book_histo('e1e2Mass', 'DiElectron Mass', 100, 0, 200)
                     book_histo('doubleEPrescale', 'prescale', 10, -0.5, 9.5)
         # Charge mis-ID measurements
-        self.book('charge', 'e1e2MassOS', 'DiEle mass OS', 60, 60, 120)
-        self.book('charge', 'e1e2MassSS', 'DiEle mass SS', 60, 60, 120)
-
+        # self.book('charge', 'e1e2MassOS', 'DiEle mass OS', 60, 60, 120)
+        # self.book('charge', 'e1e2MassSS', 'DiEle mass SS', 60, 60, 120)
+        self.book('charge', 'e1e2MassOS1', 'DiEle mass OS Barrel Low Pt', 60, 60, 120)
+        self.book('charge', 'e1e2MassOS2', 'DiEle mass OS Barrel High Pt', 60, 60, 120)   
+        self.book('charge', 'e1e2MassOS3', 'DiEle mass OS EndCap Low Pt', 60, 60, 120)   
+        self.book('charge', 'e1e2MassOS4', 'DiEle mass OS EndCap High Pt', 60, 60, 120)
+        self.book('charge', 'e1e2MassSS1', 'DiEle mass SS Barrel Low Pt', 60, 60, 120)
+        self.book('charge', 'e1e2MassSS2', 'DiEle mass SS Barrel High Pt', 60, 60, 120)
+        self.book('charge', 'e1e2MassSS3', 'DiEle mass SS EndCap Low Pt', 60, 60, 120)
+        self.book('charge', 'e1e2MassSS4', 'DiEle mass SS EndCap High Pt', 60, 60, 120)
+        
+       
     def process(self):
 
         def preselection(row):
             if not row.doubleEPass: return False
-            if not row.e1Pt > 20: return False
+            if not row.e1Pt > 10: return False
             if not row.e1MVAIDH2TauWP: return False
             if not row.e2Pt > 10: return False
             if not row.e1AbsEta < 2.5: return False
@@ -120,10 +129,28 @@ class FakeRatesEE(MegaBase):
                 continue
 
             if region == 'zee':
-                if row.e1_e2_SS:
-                    histos['charge/e1e2MassSS'].Fill(row.e1_e2_Mass)
-                else:
-                    histos['charge/e1e2MassOS'].Fill(row.e1_e2_Mass)
+                if row.e1AbsEta < 1.479 and row.e2AbsEta < 1.479 and 10 < row.e1Pt < 20 and 10 < row.e2Pt < 20 :
+                    if row.e1_e2_SS:
+                       histos['charge/e1e2MassSS1'].Fill(row.e1_e2_Mass)
+                    else:
+                       histos['charge/e1e2MassOS1'].Fill(row.e1_e2_Mass)
+                elif row.e1AbsEta < 1.479 and row.e2AbsEta < 1.479 and row.e1Pt > 20 and row.e2Pt > 20 :
+                    if row.e1_e2_SS:
+                       histos['charge/e1e2MassSS2'].Fill(row.e1_e2_Mass)
+                    else:
+                       histos['charge/e1e2MassOS2'].Fill(row.e1_e2_Mass)
+
+
+                if row.e1AbsEta > 1.479 and row.e2AbsEta > 1.479 and 10 < row.e1Pt < 20 and 10 < row.e2Pt < 20 :
+                    if row.e1_e2_SS:
+                       histos['charge/e1e2MassSS3'].Fill(row.e1_e2_Mass)
+                    else:
+                       histos['charge/e1e2MassOS3'].Fill(row.e1_e2_Mass)
+                elif row.e1AbsEta > 1.479 and row.e2AbsEta > 1.479 and row.e1Pt > 20 and row.e2Pt > 20 :
+                    if row.e1_e2_SS:
+                       histos['charge/e1e2MassSS4'].Fill(row.e1_e2_Mass)
+                    else:
+                       histos['charge/e1e2MassOS4'].Fill(row.e1_e2_Mass)
                 continue
 
             # This is a QCD or Wjets
