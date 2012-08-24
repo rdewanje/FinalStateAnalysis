@@ -83,8 +83,23 @@ class FakeRatesEE(MegaBase):
         self.book('charge', 'e1e2MassSS2', 'DiEle mass SS Barrel High Pt', 60, 60, 120)
         self.book('charge', 'e1e2MassSS3', 'DiEle mass SS EndCap Low Pt', 60, 60, 120)
         self.book('charge', 'e1e2MassSS4', 'DiEle mass SS EndCap High Pt', 60, 60, 120)
+        self.book('charge', 'e1PtBARREL', 'e1 Pt Barrel', 1000, 0, 1000)
+        self.book('charge', 'e2PtBARREL', 'e2 Pt Barrel', 1000, 0, 1000)
+        self.book('charge', 'e1PtENDCAP', 'e1 Pt EndCap', 1000, 0, 1000)
+        self.book('charge', 'e2PtENDCAP', 'e2 Pt EndCap', 1000, 0, 1000)
+        self.book('charge', 'CAT1e1e2MassOS', 'DiEle mass OS Barrel e1,e2 High Pt', 60, 60, 120)
+        self.book('charge', 'CAT1e1e2MassSS', 'DiEle mass SS Barrel e1,e2 High Pt', 60, 60, 120)
+        self.book('charge', 'CAT2e1e2MassOS', 'DiEle mass OS EndCap e1,e2 High Pt', 60, 60, 120)
+        self.book('charge', 'CAT2e1e2MassSS', 'DiEle mass SS EndCap e1,e2 High Pt', 60, 60, 120)
+        self.book('charge', 'CAT3e1e2MassOS', 'DiEle mass OS Barrel e1 High,e2 Low Pt', 60, 60, 120)
+        self.book('charge', 'CAT3e1e2MassSS', 'DiEle mass SS Barrel e1 High,e2 Low Pt', 60, 60, 120)
+        self.book('charge', 'CAT4e1e2MassOS', 'DiEle mass OS EndCap e1 High,e2 Low Pt', 60, 60, 120)
+        self.book('charge', 'CAT4e1e2MassSS', 'DiEle mass SS EndCap e1 High,e2 Low Pt', 60, 60, 120)
+                                
+
+
         
-       
+        
     def process(self):
 
         def preselection(row):
@@ -129,6 +144,48 @@ class FakeRatesEE(MegaBase):
                 continue
 
             if region == 'zee':
+
+
+                if row.e1AbsEta < 1.479 and row.e2AbsEta < 1.479 and row.e1Pt > 20 and row.e2Pt > 20 :
+                    if row.e1_e2_SS:
+                       histos['charge/CAT1e1e2MassSS'].Fill(row.e1_e2_Mass)
+                    else:
+                       histos['charge/CAT1e1e2MassOS'].Fill(row.e1_e2_Mass)
+
+                                                                          
+                if row.e1AbsEta > 1.479 and row.e2AbsEta > 1.479 and row.e1Pt > 20 and row.e2Pt > 20 :
+                    if row.e1_e2_SS:
+                       histos['charge/CAT2e1e2MassSS'].Fill(row.e1_e2_Mass)
+                    else:
+                       histos['charge/CAT2e1e2MassOS'].Fill(row.e1_e2_Mass)
+
+
+                if row.e1AbsEta < 1.479 and row.e2AbsEta < 1.479 and row.e1Pt > 20 and 10 < row.e2Pt < 20 : 
+                    if row.e1_e2_SS:
+                       histos['charge/CAT3e1e2MassSS'].Fill(row.e1_e2_Mass)
+                    else:
+                       histos['charge/CAT3e1e2MassOS'].Fill(row.e1_e2_Mass)
+
+
+                if row.e1AbsEta > 1.479 and row.e2AbsEta > 1.479 and row.e1Pt > 20 and 10 < row.e2Pt < 20 :
+                    if row.e1_e2_SS:
+                       histos['charge/CAT4e1e2MassSS'].Fill(row.e1_e2_Mass)
+                    else:
+                       histos['charge/CAT4e1e2MassOS'].Fill(row.e1_e2_Mass)
+
+                                                                                      
+                if row.e1AbsEta < 1.479 : 
+                   histos['charge/e1PtBARREL'].Fill(row.e1Pt)
+                else: 
+                   histos['charge/e1PtENDCAP'].Fill(row.e1Pt)   
+
+
+                if row.e2AbsEta < 1.479 :
+                   histos['charge/e2PtBARREL'].Fill(row.e2Pt)
+                else:
+                   histos['charge/e2PtENDCAP'].Fill(row.e2Pt)
+
+                
                 if row.e1AbsEta < 1.479 and row.e2AbsEta < 1.479 and 10 < row.e1Pt < 20 and 10 < row.e2Pt < 20 :
                     if row.e1_e2_SS:
                        histos['charge/e1e2MassSS1'].Fill(row.e1_e2_Mass)
