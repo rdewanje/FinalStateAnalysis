@@ -138,7 +138,7 @@ class WHAnalyzerBase(MegaBase):
         obj2_id = self.obj2_id
         obj3_id = self.obj3_id
         fill_histos = self.fill_histos
-        anti_wz_cut = self.anti_wz
+        #anti_wz_cut = self.anti_wz
 
         weight_func = self.event_weight
 
@@ -163,7 +163,7 @@ class WHAnalyzerBase(MegaBase):
             obj1_id_result = obj1_id(row)
             obj2_id_result = obj2_id(row)
             obj3_id_result = obj3_id(row)
-            anti_wz = anti_wz_cut(row)
+            #anti_wz = anti_wz_cut(row)
 
             # Figure out which folder/region we are in
             region_result = cut_region_map.get(
@@ -173,8 +173,8 @@ class WHAnalyzerBase(MegaBase):
             if region_result is None:
                 continue
 
-            if anti_wz:
-                base_folder, weights = region_result
+#            if anti_wz:
+#                base_folder, weights = region_result
 
                 # Fill the un-fr-weighted histograms
                 fill_histos(histos, base_folder, row, event_weight)
@@ -203,17 +203,17 @@ class WHAnalyzerBase(MegaBase):
                         else:
                             fill_histos(histos, ('os/p1p2f3/c1',), row, event_weight*charge_flip_prob)
 
-            elif sign_result and obj1_id_result and obj3_id_result:
+#            elif sign_result and obj1_id_result and obj3_id_result:
                 # WZ object topology fails. Check if we are in signal region.
-                if self.enhance_wz(row):
-                    # Signal region
-                    if obj2_id_result:
-                        fill_histos(histos, ('ss/p1p2p3_enhance_wz',), row, event_weight)
-                    else:
-                        fill_histos(histos, ('ss/p1f2p3_enhance_wz',), row, event_weight)
-                        fake_rate_obj2 = self.obj2_weight(row)
-                        fake_weight = fake_rate_obj2/(1.-fake_rate_obj2)
-                        fill_histos(histos, ('ss/p1f2p3_enhance_wz/w2',), row, event_weight*fake_weight)
+#                if self.enhance_wz(row):
+#                    # Signal region
+#                    if obj2_id_result:
+#                        fill_histos(histos, ('ss/p1p2p3_enhance_wz',), row, event_weight)
+#                    else:
+#                        fill_histos(histos, ('ss/p1f2p3_enhance_wz',), row, event_weight)
+#                        fake_rate_obj2 = self.obj2_weight(row)
+#                        fake_weight = fake_rate_obj2/(1.-fake_rate_obj2)
+#                        fill_histos(histos, ('ss/p1f2p3_enhance_wz/w2',), row, event_weight*fake_weight)
 
     def finish(self):
         self.write_histos()
