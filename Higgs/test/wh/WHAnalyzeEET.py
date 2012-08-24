@@ -7,24 +7,25 @@ Analyze EET events for the WH analysis
 from EETauTree import EETauTree
 from FinalStateAnalysis.StatTools.RooFunctorFromWS import build_roofunctor
 import os
-from PUWeighting import pu_weight
+#from PUWeighting import pu_weight
+pu_weight=1.0
 import ROOT
 import WHAnalyzerBase
 
 # Get fitted fake rate functions
 frfit_dir = os.path.join('results', os.environ['jobid'], 'fakerate_fits')
-highpt_ee_fr = build_roofunctor(
-    frfit_dir + '/ee_wjets_pt20_mvaidiso01_e2JetPt-data_ee.root',
+highpt_e_fr = build_roofunctor(
+    frfit_dir + '/e_wjets_pt10_mvaidiso02_eJetPt.root',
     'fit_efficiency', # workspace name
     'efficiency'
 )
-lowpt_ee_fr = build_roofunctor(
-    frfit_dir + '/ee_wjets_pt10_mvaidiso01_e2JetPt-data_ee.root',
+lowpt_e_fr = build_roofunctor(
+    frfit_dir + '/e_wjets_pt10_mvaidiso03_eJetPt.root',
     'fit_efficiency', # workspace name
     'efficiency'
 )
 tau_fr = build_roofunctor(
-    frfit_dir + '/t_ztt_pt20_mvaloose_tauPt-data_mm.root',
+    frfit_dir + '/t_ztt_pt20_mvaloose_tauPt.root',
     'fit_efficiency', # workspace name
     'efficiency'
 )
@@ -159,11 +160,13 @@ class WHAnalyzeEET(WHAnalyzerBase.WHAnalyzerBase):
     def obj3_id(self, row):
         return bool(row.tLooseMVAIso)
 
+
     def event_weight(self, row):
-        weight = pu_weight(row)
-        if row.run < 10:
-            weight *= ROOT.Cor_Total_Ele_Lead(row.e1Pt, row.e1AbsEta)
-            weight *= ROOT.Cor_Total_Ele_SubLead(row.e2Pt, row.e2AbsEta)
+        #weight = pu_weight(row)
+        weight=1.0
+#        if row.run < 10:
+#            weight *= ROOT.Cor_Total_Ele_Lead(row.e1Pt, row.e1AbsEta)
+#            weight *= ROOT.Cor_Total_Ele_SubLead(row.e2Pt, row.e2AbsEta)
         return weight
 
     def obj1_weight(self, row):
