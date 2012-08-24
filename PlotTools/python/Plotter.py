@@ -50,7 +50,7 @@ class Plotter(object):
             'TTplusJets_madgraph',
             'WZJetsTo3LNu*',
             'ZZJetsTo4L*',
-            'WW*',
+           # 'WW*',
         ]
 
     @staticmethod
