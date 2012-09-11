@@ -2,17 +2,18 @@
 recipes = ENV['fsa'] + '/PlotTools/rake/recipes.rake'
 import recipes
 
-$jobid = ENV['jobid']
-
+$jobid = '2012-07-29-7TeV-Higgs'
+puts "jobid: #{$jobid}"
 # Figure out what run period we are in
 $period = '7TeV'
-if $jobid.include? '8TeV'
-  $period = '8TeV'
-end
+#if $jobid.include? '8TeV'
+#  $period = '8TeV'
+#end
 
 ################################################################################
 ## Refreshing cython proxies ###################################################
 ################################################################################
+
 
 ################################################################################
 ## Sample names ################################################################
@@ -22,6 +23,7 @@ end
 def get_sample_names(substring)
   inputs = Dir.glob("inputs/#{$jobid}/*.txt").select {|x| x.include? substring}
   inputs = inputs.map{|x| File.basename(x).sub(".txt", "")}
+puts "inputs: #{inputs}"
   return inputs
 end
 
@@ -41,7 +43,7 @@ samples = Hash[
   "data_em" => get_sample_names("data_MuEG"),
   "data_ee" => get_sample_names("data_DoubleElectron"),
 ]
-
+puts "jobid: samples"
 # Function to get the .root files for an analyzer and samples
 def get_analyzer_results(analyzer, the_samples)
   output = Array.new
@@ -49,6 +51,7 @@ def get_analyzer_results(analyzer, the_samples)
   the_samples.each do |sample|
     output << "results/#{$jobid}/#{analyzer_base}/#{sample}.root"
   end
+puts "jobid: #{output}"
   return output
 end
 
@@ -64,7 +67,6 @@ fr_analyzer_sample_map = Hash[
   "FakeRatesEM.py" => samples['ewk'] + samples['data_em'],
   "FakeRatesMMT.py" => samples['ewk'] + samples['data_mm'],
   "FakeRatesMMM.py" => samples['ewk'] + samples['data_mm'],
-  "FakeRatesEE.py" => samples['ewk'] + samples['data_ee'],
 ]
 
 # Create an empty placeholder to enable tab-completion
@@ -83,10 +85,11 @@ end
 ##  targets:
 ##     fits
 ################################################################################
-
+puts "jobid:::: #{$jobid}"
 # Output directory
 $frfit_dir = "results/#{$jobid}/fakerate_fits"
 directory $frfit_dir
+puts "output direc: #{$frfit_dir}"
 
 # Common fit functions
 exponential = "scale*TMath::Exp(x*decay)+offset"
@@ -102,25 +105,6 @@ flat_vars =  "offset[1e-2, 0, 0.5]"
 fr_fits = Hash[
   # Format is type_region_denom_num_variable
   "e_wjets_pt10_mvaidiso03_eJetPt" => Hash[
-    "samples" => Array["ewk", "data_ee"],
-    "analyzer" => "FakeRatesEE",
-    #"function" => landau,
-    #"variables" => landau_vars,
-    "function" => exponential,
-    "variables" => exponential_vars,
-    "rebin" => 5,
-    "range" => "10 100",
-  ],
-  "e_wjets_pt10_mvaidiso02_eJetPt" => Hash[
-    "samples" => Array["ewk", "data_ee"],
-    "analyzer" => "FakeRatesEE",
-    "function" => landau,
-    "variables" => landau_vars,
-    "rebin" => 5,
-    "range" => "10 100",
-  ],
-  # Format is type_region_denom_num_variable
-  "e_wjets_pt10_mvaidiso03_eJetPt" => Hash[
     "samples" => Array["ewk", "data_em"],
     "analyzer" => "FakeRatesEM",
     #"function" => landau,
@@ -138,7 +122,6 @@ fr_fits = Hash[
     "rebin" => 5,
     "range" => "10 100",
   ],
-
   "e_wjets_pt10_mvaidiso01_eJetPt" => Hash[
     "samples" => Array["ewk", "data_em"],
     "analyzer" => "FakeRatesEM",
@@ -245,7 +228,7 @@ fr_fits = Hash[
     "range" => "20 100",
   ],
 ]
-
+puts "jobid: 1"
 # Placeholder
 task :fits => []
 
@@ -270,7 +253,7 @@ fr_fits.each do |fit, fit_info|
   # Path to histograms in root files
   denom_path = Array[region, denom, var].join("/")
   num_path = Array[region, denom, num, var].join("/")
-
+puts "jobid: 2"
   # Correct the numerator and denominator for WZ + ZZ contamination
   # The output is stored in "numerator" and "denominator"
   corrected_file = fit_output.sub('.root', '.corrected_inputs.root')
@@ -285,13 +268,12 @@ fr_fits.each do |fit, fit_info|
   task :fits => fit_output
 
 end
-
+puts "jobid: 3"
 ################################################################################
 ## Recipes to analyze WH
 ##  targets:
 ##     mmt
 ################################################################################
-task :eet => get_analyzer_results("WHAnalyzeEET.py", samples['ewk'] + samples['data_ee'] + samples['signal'])
 
 task :mmt => get_analyzer_results("WHAnalyzeMMT.py", samples['ewk'] + samples['data_mm'] + samples['signal'])
 
@@ -308,10 +290,10 @@ end
 file "WHAnalyzeMMT.py" => [ "#{$frfit_dir}/m_wjets_pt20_pfidiso02_muonJetPt.root", "#{$frfit_dir}/m_wjets_pt10_pfidiso02_muonJetPt.root", "#{$frfit_dir}/t_ztt_pt20_mvaloose_tauPt.root",] do |t|
   sh "touch #{t.name}"
 end
-file "WHAnalyzeEET.py" => [ "#{$frfit_dir}/e_wjets_pt10_mvaidiso02_eJetPt.root", "#{$frfit_dir}/e_wjets_pt10_mvaidiso03_eJetPt.root", "#{$frfit_dir}/t_ztt_pt20_mvaloose_tauPt.root"] do |t|
+file "WHAnalyzeEET.py" => [ "#{$frfit_dir}/ee_wjets_pt20_mvaidiso01_e2JetPt-data_ee.root", "#{$frfit_dir}/ee_wjets_pt10_mvaidiso01_e2JetPt-data_ee.root", "#{$frfit_dir}/t_ztt_pt20_mvaloose_tauPt-data_mm.root"] do |t|
   sh "touch #{t.name}"
 end
-
+puts "jobid: 4"
 ################################################################################
 # Recipes to make data cards (plots come for free)
 #  targets:
@@ -366,7 +348,6 @@ $carddir = "vhtt_lep_cards_#{$period}"
 # Combine all category shape files into the datacard project
 file "#{$carddir}/shapes_unmorphed.root" => [
   "#{$mmtdir}/mmt_shapes_#{$period}_statshapes.root", 
-  "#{$eetdir}/eet_shapes_#{$period}_statshapes.root",
   "#{$emtdir}/emt_shapes_#{$period}_statshapes.root"] do |t|
   sh "hadd -f #{t.name} #{t.prerequisites.join(' ')}"
 end
@@ -378,7 +359,7 @@ pivot_masses = "120,130,140"
 file "#{$carddir}/shapes.root" => ["#{$carddir}/shapes_unmorphed.root"] do |t|
   puts "Doing horizontal morphing"
   sh "cp #{t.prerequisites[0]} #{t.name}"
-  sh "horizontal-morphing.py --categories='emt,mmt,eet' --samples='VH{MASS}' --uncerts='' --masses='120,130,140' --step-size=1 -i #{t.name}"
+  sh "horizontal-morphing.py --categories='emt,mmt' --samples='VH{MASS}' --uncerts='' --masses='120,130,140' --step-size=1 -i #{t.name}"
 end
 
 stat_shape_lists = Dir.glob("results/#{$jobid}/plots/*/*_statshapes.txt")
@@ -407,7 +388,6 @@ file "#{$carddir}/unc.vals" => ["#{$carddir}/unc.vals.base"] + stat_shape_lists 
   stat_shape_lists.each do |list|
     sh "cat #{list} | grep mmt | xargs -n 1 -I {} echo 'mmt fakes {} 1.0' >> #{t.name}"
     sh "cat #{list} | grep emt | xargs -n 1 -I {} echo 'emt fakes {} 1.0' >> #{t.name}"
-    sh "cat #{list} | grep eet | xargs -n 1 -I {} echo 'eet fakes {} 1.0' >> #{t.name}"
   end
 end
 
@@ -440,9 +420,8 @@ cardmasses.each do |mass|
   task :cards => make_datacard_task(mass, '2lt', '')
   task :cards => make_datacard_task(mass, 'emt', 'emt')
   task :cards => make_datacard_task(mass, 'mmt', 'mmt')
-  task :cards => make_datacard_task(mass, 'eet', 'eet')
 end
-
+puts "jobid: 6"
 ################################################################################
 ### Copying card configuration to official place ###############################
 ################################################################################
@@ -464,7 +443,7 @@ end
 file "#{$httcombodir}/vhtt_llt.inputs-sm-#{$period}.root" => ["#{$carddir}/shapes.root"] do |t|
   sh "cp -v #{t.prerequisites[0]} #{t.name}"
 end
-
+puts "jobid: 7"
 task :copycards => [
   "#{$httcombodir}/cgs-sm-#{$period}-00.conf",
   "#{$httcombodir}/unc-sm-#{$period}-00.conf",

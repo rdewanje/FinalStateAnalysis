@@ -77,12 +77,12 @@ class WHPlotterBase(Plotter):
                 'ss/p1p2p3/'
             )
             output['vh%i' % mass] = vh_view
-            #ww_view = views.SubdirectoryView(
-             #  self.rebin_view(self.get_view('WH_%i*' % mass), rebin),
-              #  'ss/p1p2p3/'
-            #)
-            #output['vh%i_hww' % mass] = ww_view
-            #output['signal%i' % mass] = views.SumView(ww_view, vh_view)
+            ww_view = views.SubdirectoryView(
+               self.rebin_view(self.get_view('WH_%i*' % mass), rebin),
+                'ss/p1p2p3/'
+            )
+            output['vh%i_hww' % mass] = ww_view
+            output['signal%i' % mass] = views.SumView(ww_view, vh_view)
 
         return output
 
@@ -201,9 +201,9 @@ class WHPlotterBase(Plotter):
             vh = sig_view['vh%i' % mass].Get(variable)
             vh.SetName('VH%i' % mass)
             vh.Write()
-            #ww = sig_view['vh%i_hww' % mass].Get(variable)
-            #ww.SetName('VH%i_hww' % mass)
-            #ww.Write()
+            ww = sig_view['vh%i_hww' % mass].Get(variable)
+            ww.SetName('VH%i_hww' % mass)
+            ww.Write()
 
         wz.Write()
         zz.Write()

@@ -6,7 +6,7 @@ Analyze MMT events for the WH analysis
 
 from FinalStateAnalysis.StatTools.RooFunctorFromWS import build_roofunctor
 import glob
-from MuMuTauTree import MuMuTauTree
+from MuTauTauTree import MuTauTauTree
 import os
 import FinalStateAnalysis.TagAndProbe.MuonPOGCorrections as MuonPOGCorrections
 import FinalStateAnalysis.TagAndProbe.PileupWeight as PileupWeight
@@ -70,10 +70,8 @@ def mc_corrector_2011(row):
         return 1
     pu = pu_corrector(row.nTruePU)
     #pu = 1
-    m1id = muon_pog_PFTight_2011(row.m1Pt, row.m1Eta)
-    m2id = muon_pog_PFTight_2011(row.m2Pt, row.m2Eta)
-    m1iso = muon_pog_PFRelIsoDB02_2011(row.m1Pt, row.m1Eta)
-    m2iso = muon_pog_PFRelIsoDB02_2011(row.m2Pt, row.m2Eta)
+    mid = muon_pog_PFTight_2011(row.mPt, row.mEta)
+    miso = muon_pog_PFRelIsoDB02_2011(row.mPt, row.mEta)
     trigger = muon_pog_Mu17Mu8_2011(row.m1Eta, row.m2Eta)
     return pu*m1id*m2id*m1iso*m2iso*trigger
 
@@ -81,13 +79,10 @@ def mc_corrector_2012(row):
     if row.run > 2:
         return 1
     pu = pu_corrector(row.nTruePU)
-    m1id = muon_pog_PFTight_2012(row.m1Pt, row.m1Eta)
-    m2id = muon_pog_PFTight_2012(row.m2Pt, row.m2Eta)
-    m1iso = muon_pog_PFRelIsoDB02_2012(row.m1Pt, row.m1Eta)
-    m2iso = muon_pog_PFRelIsoDB02_2012(row.m2Pt, row.m2Eta)
-    m1Trig = muon_pog_Mu17Mu8_Mu17_2012(row.m1Pt, row.m1Eta)
-    m2Trig = muon_pog_Mu17Mu8_Mu8_2012(row.m2Pt, row.m2Eta)
-    return pu*m1id*m2id*m1iso*m2iso*m1Trig*m2Trig
+    mid = muon_pog_PFTight_2012(row.mPt, row.mEta)
+    miso = muon_pog_PFRelIsoDB02_2012(row.mPt, row.mEta)
+    mTrig = muon_pog_Mu17Mu8_Mu17_2012(row.mPt, row.mEta)
+    return pu*m1id*m2id*m1iso*m2iso*mTrig
 
 # Determine which set of corrections to use
 mc_corrector = mc_corrector_2011
@@ -99,9 +94,9 @@ if not is7TeV:
 ################################################################################
 
 class WHAnalyzeMMT(WHAnalyzerBase.WHAnalyzerBase):
-    tree = 'mmt/final/Ntuple'
+    tree = 'mtt/final/Ntuple'
     def __init__(self, tree, outfile, **kwargs):
-        super(WHAnalyzeMMT, self).__init__(tree, outfile, MuMuTauTree, **kwargs)
+        super(WHAnalyzeMTT, self).__init__(tree, outfile, MuTauTauTree, **kwargs)
         # Hack to use S6 weights for the one 7TeV sample we use in 8TeV
         target = os.environ['megatarget']
         if 'HWW3l' in target:
@@ -115,20 +110,18 @@ class WHAnalyzeMMT(WHAnalyzerBase.WHAnalyzerBase):
         self.book(folder, "rho", "Fastjet #rho", 100, 0, 25)
         self.book(folder, "nvtx", "Number of vertices", 31, -0.5, 30.5)
         self.book(folder, "prescale", "HLT prescale", 26, -5.5, 20.5)
-        self.book(folder, "m1Pt", "Muon 1 Pt", 100, 0, 100)
-        self.book(folder, "m1JetPt", "Muon 1 Jet Pt", 100, 0, 200)
-        self.book(folder, "m2Pt", "Muon 2 Pt", 100, 0, 100)
-        self.book(folder, "m2JetPt", "Muon 2 Jet Pt", 100, 0, 200)
-        self.book(folder, "m1AbsEta", "Muon 1 AbsEta", 100, 0, 2.4)
-        self.book(folder, "m2AbsEta", "Muon 2 AbsEta", 100, 0, 2.4)
-        self.book(folder, "m1m2Mass", "Muon 1-2 Mass", 120, 0, 120)
+        self.book(folder,"t1t2Pt","Pt of 2 Leading Taus/Event",100,0,200)
+        self.book(folder, "mPt", "Muon  Pt", 100, 0, 100)
+        self.book(folder, "mJetPt", "Muon Jet Pt", 100, 0, 200)
+        self.book(folder, "mAbsEta", "Muon AbsEta", 100, 0, 2.4)
         self.book(folder, "subMass", "subleadingMass", 200, 0, 200)
         self.book(folder, "leadMass", "leadingMass", 200, 0, 200)
         # Rank muons by less MT to MET, for WZ control region
         self.book(folder, "subMTMass", "subMTMass", 200, 0, 200)
-        self.book(folder, "m2Iso", "m2Iso", 100, 0, 0.3)
-        self.book(folder, "tPt", "Tau Pt", 100, 0, 100)
-        self.book(folder, "tAbsEta", "Tau AbsEta", 100, 0, 2.3)
+        self.book(folder, "t1Pt", "Tau 1 Pt", 100, 0, 100)
+        self.book(folder, "t2Pt", "Tau 2 Pt", 100, 0, 100)
+        self.book(folder, "t1AbsEta", "Tau 1 AbsEta", 100, 0, 2.3)
+        self.book(folder, "t2AbsEta", "Tau 2 AbsEta", 100, 0, 2.3)
         self.book(folder, "nTruePU", "NPU", 62, -1.5, 60.5)
 
     def fill_histos(self, histos, folder, row, weight):
@@ -140,18 +133,16 @@ class WHAnalyzeMMT(WHAnalyzerBase.WHAnalyzerBase):
         fill('prescale', row.doubleMuPrescale)
         fill('rho', row.rho)
         fill('nvtx', row.nvtx)
-        fill('m1Pt', row.m1Pt)
-        fill('m2Pt', row.m2Pt)
-        fill('m1JetPt', row.m1JetPt)
-        fill('m2JetPt', row.m2JetPt)
-        fill('m1AbsEta', row.m1AbsEta)
-        fill('m2AbsEta', row.m2AbsEta)
-        fill('m1m2Mass', row.m1_m2_Mass)
-        fill('subMass', row.m2_t_Mass)
-        fill('leadMass', row.m1_t_Mass)
-        fill('m2Iso', row.m2RelPFIsoDB)
-        fill('tPt', row.tPt)
-        fill('tAbsEta', row.tAbsEta)
+        fill('t1t2Pt',row.t1t2Pt)
+        fill('mPt', row.mPt)
+        fill('mJetPt', row.mJetPt)
+        fill('mAbsEta', row.mAbsEta)
+        fill('subMass', row.m_t2_Mass)
+        fill('leadMass', row.m_t1_Mass)
+        fill('t1Pt', row.t1Pt)
+        fill('t2Pt', row.t2Pt)
+        fill('t1AbsEta', row.t1AbsEta)
+        fill('t2AbsEta', row.t2AbsEta)
         if row.m1MtToMET > row.m2MtToMET:
             fill('subMTMass', row.m2_t_Mass)
         else:
@@ -162,32 +153,38 @@ class WHAnalyzeMMT(WHAnalyzerBase.WHAnalyzerBase):
 
         Excludes FR object IDs and sign cut.
         '''
-        if not row.doubleMuPass:
+        if row.t1_t2_SS:
             return False
-        if row.m1Pt < row.m2Pt:
+        if row.m_t1_Mass > 80 and row.t1t2Pt > 50:
             return False
-        if row.m1Pt < 20:
+        if row.t1MuOverlap:
             return False
-        if row.m2Pt < 10:
+        if row.t2MuOverlap:
             return False
-        if row.tPt < 20:
+        if not row.mPFIDTight:
             return False
-        if row.m1AbsEta > 2.4:
+        if row.mRelPFIsoDB > 0.1:
             return False
-        if row.m2AbsEta > 2.4:
+        if row.mPt < 24:
             return False
-        if row.tAbsEta > 2.3:
+        if row.t1Pt < 25:
+            return False
+        if row.t2Pt < 20:
+            return False
+        if row.mAbsEta > 2.1:
+            return False
+        if row.t1AbsEta > 2.3:
+            return False
+        if row.t2AbsEta > 2.3:
             return False
 
-        if abs(row.m1DZ) > 0.2:
+        if abs(row.mDZ) > 0.2:
             return False
-        if abs(row.m2DZ) > 0.2:
+        if abs(row.t1DZ) > 0.2:
             return False
-        if abs(row.tDZ) > 0.2:
+        if abs(row.t2DZ) > 0.2:
             return False
-
-        if row.m1_m2_Mass < 20:
-            return False
+                    
         if row.LT < 80:
             return False
 
@@ -200,66 +197,57 @@ class WHAnalyzeMMT(WHAnalyzerBase.WHAnalyzerBase):
         if row.eVetoCicTightIso:
             return False
 
-        if not row.m1PixHits:
+        if not row.mPixHits:
             return False
-        if not row.m2PixHits:
-            return False
-
+        
         ## Fixme use CSV
-        if row.m1JetBtag > 3.3:
+        if row.mJetBtag > 3.3:
             return False
-        if row.m2JetBtag > 3.3:
+       
+        if not row.t1AntiMuonTight:
             return False
-
-        if not row.tAntiElectronLoose:
+        if not row.t2AntiMuonTight:
             return False
-        if row.tCiCTightElecOverlap:
+        if not row.t1AntiElectronLoose:
             return False
-
-        if not self.trigger_match_m1(row):
+        if not row.t2AntiElectronMedium:
             return False
-        if not self.trigger_match_m2(row):
+            
+        if not self.trigger_match_m(row):
             return False
+        
 
         return True
 
     @staticmethod
-    def trigger_match_m1(row):
+    def trigger_match_m(row):
         return True
-        if row.m1DiMuonL3p5PreFiltered8  > 0 or \
-           row.m1DiMuonL3PreFiltered7  > 0 or \
-           row.m1SingleMu13L3Filtered13  > 0 or \
-           row.m1SingleMu13L3Filtered17  > 0 or \
-           row.m1DiMuonMu17Mu8DzFiltered0p2  > 0 or \
-           row.m1L3fL1DoubleMu10MuOpenL1f0L2f10L3Filtered17:
+        if row.mDiMuonL3p5PreFiltered8  > 0 or \
+           row.mDiMuonL3PreFiltered7  > 0 or \
+           row.mSingleMu13L3Filtered13  > 0 or \
+           row.mSingleMu13L3Filtered17  > 0 or \
+           row.mDiMuonMu17Mu8DzFiltered0p2  > 0 or \
+           row.mL3fL1DoubleMu10MuOpenL1f0L2f10L3Filtered17:
             return True
 
-    @staticmethod
-    def trigger_match_m2(row):
-        return True
-        if row.m2DiMuonL3p5PreFiltered8  > 0 or \
-           row.m2DiMuonL3PreFiltered7  > 0 or \
-           row.m2SingleMu13L3Filtered13  > 0 or \
-           row.m2SingleMu13L3Filtered17  > 0 or \
-           row.m2DiMuonMu17Mu8DzFiltered0p2  > 0 or \
-           row.m2L3fL1DoubleMu10MuOpenL1f0L2f10L3Filtered17:
-            return True
+    
 
     def sign_cut(self, row):
-        ''' Returns true if muons are SS '''
-        return bool(row.m1_m2_SS)
+        ''' Returns true if taus are OS '''
+        return bool(row.t1_t2_OS)
 
     def obj1_id(self, row):
-        return bool(row.m1PFIDTight) and bool(row.m1RelPFIsoDB < 0.2)
+        return bool(row.mPFIDTight) and bool(row.mRelPFIsoDB < 0.2)
 
     def obj2_id(self, row):
-        return bool(row.m2PFIDTight) and bool(row.m2RelPFIsoDB < 0.2)
-
+        return bool(row.t1TightMVAIso)
+    
     def obj3_id(self, row):
-        return bool(row.tLooseMVAIso)
+        return bool(row.t2TightMVAIso)
+
 
     def anti_wz(self, row):
-        return row.tAntiMuonTight and not row.tMuOverlap
+        return row.t1AntiMuonTight and not row.t1MuOverlap and row.t2AntiMuonTight and not row.t2MuOverlap
 
     def enhance_wz(self, row):
         # Require the "tau" to be a muon, and require the third muon
@@ -277,20 +265,20 @@ class WHAnalyzeMMT(WHAnalyzerBase.WHAnalyzerBase):
         return mc_corrector(row)
 
     def obj1_weight(self, row):
-        return highpt_mu_fr(max(row.m1JetPt, row.m1Pt))
-        #return highpt_mu_fr(row.m1Pt)
+        return highpt_mu_fr(max(row.mJetPt, row.mPt))
+        #return highpt_mu_fr(row.mPt)
 
     def obj2_weight(self, row):
-        return lowpt_mu_fr(max(row.m2JetPt, row.m2Pt))
-        #return lowpt_mu_fr(row.m2Pt)
+        return tau_fr(row.t1Pt)
 
     def obj3_weight(self, row):
-        return tau_fr(row.tPt)
+        return tau_fr(row.t2Pt)
+
 
     # For measuring charge flip probability
     # Not really used in this channel
     def obj1_obj3_SS(self, row):
-        return not row.m1_t_SS
+        return not row.m_t1_SS
 
     def obj1_charge_flip(self, row):
         return 0
