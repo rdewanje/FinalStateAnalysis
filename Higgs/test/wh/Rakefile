@@ -274,6 +274,7 @@ puts "jobid: 3"
 ##  targets:
 ##     mmt
 ################################################################################
+task :mtt => get_analyzer_results("WHAnalyzeMTT.py", samples['ewk'] + samples['data_m'] + samples['signal'])
 
 task :mmt => get_analyzer_results("WHAnalyzeMMT.py", samples['ewk'] + samples['data_mm'] + samples['signal'])
 
@@ -284,6 +285,9 @@ task :mmcontrol => get_analyzer_results("ControlZMM.py", samples['ewk'] + sample
 task :emcontrol => get_analyzer_results("ControlEM.py", samples['ewk'] + samples['data_em'])
 
 # IF the FR fits change, make sure we re-run the analyses
+file "WHAnalyzeMTT.py" => [ "#{$frfit_dir}/m_wjets_pt20_pfidiso02_muonJetPt.root", "#{$frfit_dir}/t_ztt_pt20_mvaloose_tauPt.root", "#{$frfit_dir}/t_ztt_pt20_mvaloose_tauPt.root",] do |t|
+  sh "touch #{t.name}"
+end
 file "WHAnalyzeEMT.py" => [ "#{$frfit_dir}/e_wjets_pt10_mvaidiso03_eJetPt.root", "#{$frfit_dir}/m_wjets_pt20_pfidiso02_muonJetPt.root", "#{$frfit_dir}/t_ztt_pt20_mvaloose_tauPt.root",] do |t|
   sh "touch #{t.name}"
 end
@@ -297,6 +301,7 @@ puts "jobid: 4"
 ################################################################################
 # Recipes to make data cards (plots come for free)
 #  targets:
+#      mtt_shapes (new)
 #      mmt_shapes
 #      emt_shapes
 #      eet_shapes
@@ -306,10 +311,12 @@ puts "jobid: 4"
 
 
 # Output directories
+$mttdir = "results/#{$jobid}/plots/mtt/"
 $mmtdir = "results/#{$jobid}/plots/mmt/"
 $emtdir = "results/#{$jobid}/plots/emt/"
 $eetdir = "results/#{$jobid}/plots/eet/"
 
+directory $mttdir
 directory $mmtdir
 directory $eetdir
 directory $emtdir
@@ -325,6 +332,13 @@ def add_fake_errors(input_file, prefix)
 end
 
 # The .root files with the shapes
+# UNCOMMENT THE PART BELOW ONCE WHPlotterMTT.py IS AVAILABLE
+# file "#{$mttdir}/mtt_shapes_#{$period}.root" => ['WHPlotterMTT.py', 'WHPlotterBase.py'] do |t|
+#  sh "python WHPlotterMTT.py"
+# end
+# add_fake_errors("#{$mttdir}/mtt_shapes_#{$period}.root", "mtt")
+# task :mtt_shapes => ["#{$mttdir}/mtt_shapes_#{$period}_statshapes.root" ]
+
 file "#{$mmtdir}/mmt_shapes_#{$period}.root" => ['WHPlotterMMT.py', 'WHPlotterBase.py'] do |t|
   sh "python WHPlotterMMT.py"
 end
@@ -346,11 +360,23 @@ task :eet_shapes => ["#{$eetdir}/eet_shapes_#{$period}_statshapes.root" ]
 $carddir = "vhtt_lep_cards_#{$period}"
 
 # Combine all category shape files into the datacard project
+# UNCOMMENT THE PART BELOW AND REMOVE THE 'DEFAULT' PART ONCE 'WHPlotterMTT.py' IS AVAILABLE   
+
+# file "#{$carddir}/shapes_unmorphed.root" => [
+#  "#{$mttdir}/mtt_shapes_#{$period}_statshapes.root",
+#  "#{$mmtdir}/mmt_shapes_#{$period}_statshapes.root",
+#  "#{$emtdir}/emt_shapes_#{$period}_statshapes.root"] do |t|
+#  sh "hadd -f #{t.name} #{t.prerequisites.join(' ')}"
+# end
+
+# THE 'DEFAULT' PART
 file "#{$carddir}/shapes_unmorphed.root" => [
   "#{$mmtdir}/mmt_shapes_#{$period}_statshapes.root", 
   "#{$emtdir}/emt_shapes_#{$period}_statshapes.root"] do |t|
   sh "hadd -f #{t.name} #{t.prerequisites.join(' ')}"
 end
+
+
 
 # Masses where actually have signal samples
 pivot_masses = "120,130,140"
@@ -360,7 +386,11 @@ file "#{$carddir}/shapes.root" => ["#{$carddir}/shapes_unmorphed.root"] do |t|
   puts "Doing horizontal morphing"
   sh "cp #{t.prerequisites[0]} #{t.name}"
   sh "horizontal-morphing.py --categories='emt,mmt' --samples='VH{MASS}' --uncerts='' --masses='120,130,140' --step-size=1 -i #{t.name}"
+# UNCOMMENT THE LINE BELOW AND REMOVE THE LINE ABOVE ONCE 'WHPlotterMTT.py' IS AVAILABLE
+#  sh "horizontal-morphing.py --categories='emt,mmt,mtt' --samples='VH{MASS}' --uncerts='' --masses='120,130,140' --step-size=1 -i #{t.name}"
 end
+
+
 
 stat_shape_lists = Dir.glob("results/#{$jobid}/plots/*/*_statshapes.txt")
 # We make these the dependency, since they are always rpoduced w/ the .txt lists
@@ -386,6 +416,8 @@ file "#{$carddir}/unc.vals" => ["#{$carddir}/unc.vals.base"] + stat_shape_lists 
   sh "echo '' >> #{t.name}"
   sh "echo '# Stat shape uncertainties' >> #{t.name}"
   stat_shape_lists.each do |list|
+# UNCOMMENT THE LINE BELOW ONCE 'WHPlotterMTT.py' IS AVAILABLE
+#   sh "cat #{list} | grep mtt | xargs -n 1 -I {} echo 'mtt fakes {} 1.0' >> #{t.name}"
     sh "cat #{list} | grep mmt | xargs -n 1 -I {} echo 'mmt fakes {} 1.0' >> #{t.name}"
     sh "cat #{list} | grep emt | xargs -n 1 -I {} echo 'emt fakes {} 1.0' >> #{t.name}"
   end
@@ -420,6 +452,8 @@ cardmasses.each do |mass|
   task :cards => make_datacard_task(mass, '2lt', '')
   task :cards => make_datacard_task(mass, 'emt', 'emt')
   task :cards => make_datacard_task(mass, 'mmt', 'mmt')
+# UNCOMMENT ONCE 'WHPlotterMTT.py' IS AVAILABLE
+#  task :cards => make_datacard_task(mass, 'mtt', 'mtt')
 end
 puts "jobid: 6"
 ################################################################################
